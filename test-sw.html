@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Service Worker Test</title>
+</head>
+<body>
+    <h1>Service Worker Test</h1>
+    <div id="status">Checking service worker...</div>
+    <button onclick="testGoogleRequest()">Test Google Request</button>
+    <div id="result"></div>
+    
+    <script>
+        // Register service worker
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('/flutter_service_worker.js')
+                .then(registration => {
+                    console.log('Service Worker registered:', registration);
+                    document.getElementById('status').innerHTML = 'Service Worker registered successfully';
+                })
+                .catch(error => {
+                    console.log('Service Worker registration failed:', error);
+                    document.getElementById('status').innerHTML = 'Service Worker registration failed: ' + error;
+                });
+        }
+        
+        function testGoogleRequest() {
+            document.getElementById('result').innerHTML = 'Testing Google request...';
+            
+            fetch('https://www.google.com/')
+                .then(response => {
+                    console.log('Response:', response);
+                    document.getElementById('result').innerHTML = 
+                        'Success! Status: ' + response.status + '<br>' +
+                        'URL: ' + response.url;
+                })
+                .catch(error => {
+                    console.log('Error:', error);
+                    document.getElementById('result').innerHTML = 'Error: ' + error.message;
+                });
+        }
+    </script>
+</body>
+</html>
