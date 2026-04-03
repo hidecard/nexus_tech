@@ -32,30 +32,73 @@ self.addEventListener('activate', (event) => {
 
 // Handle fetch events for CORS issues
 self.addEventListener('fetch', (event) => {
-  // Only handle requests to google.com that are failing due to CORS
-  if (event.request.url.includes('google.com')) {
+  const requestUrl = event.request.url;
+  
+  // Intercept all Google.com requests and redirect through proxy
+  if (requestUrl.includes('https://www.google.com')) {
+    const proxyUrl = requestUrl.replace('https://www.google.com', '/api/google');
+    
     event.respondWith(
-      fetch(event.request.url, {
+      fetch(proxyUrl, {
+        method: event.request.method,
+        headers: event.request.headers,
+        body: event.request.body,
         mode: 'cors',
-        credentials: 'omit',
-        headers: {
-          'Accept': 'application/json, text/plain, */*',
-        }
+        credentials: 'omit'
       }).catch(() => {
-        // If fetch fails, return a fallback response
+        // If proxy fails, try direct fetch with CORS headers
+        return fetch(event.request, {
+          mode: 'cors',
+          credentials: 'omit',
+          headers: {
+            'Accept': 'application/json, text/plain, */*',
+          }
+        }).catch(() => {
+          // Final fallback response
+          return new Response(
+            JSON.stringify({ 
+              error: 'CORS blocked - Request failed through proxy and direct access',
+              message: 'Google API request could not be completed'
+            }),
+            {
+              status: 200,
+              statusText: 'OK',
+              headers: {
+                'Content-Type': 'application/json',
+                'Access-Control-Allow-Origin': '*',
+                'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+                'Access-Control-Allow-Headers': 'Content-Type, Authorization'
+              }
+            }
+          );
+        });
+      })
+    );
+  }
+  
+  // Also handle Google APIs
+  if (requestUrl.includes('https://www.googleapis.com')) {
+    const proxyUrl = requestUrl.replace('https://www.googleapis.com', '/api/googleapis');
+    
+    event.respondWith(
+      fetch(proxyUrl, {
+        method: event.request.method,
+        headers: event.request.headers,
+        body: event.request.body,
+        mode: 'cors',
+        credentials: 'omit'
+      }).catch(() => {
         return new Response(
           JSON.stringify({ 
-            error: 'CORS blocked - This request needs to be made through a proxy server',
-            message: 'Direct requests to Google APIs are blocked by CORS policy'
+            error: 'Google APIs proxy failed',
+            message: 'Could not complete Google APIs request'
           }),
           {
             status: 200,
             statusText: 'OK',
             headers: {
               'Content-Type': 'application/json',
-              'Access-Control-Allow-Origin': '*',
-              'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-              'Access-Control-Allow-Headers': 'Content-Type, Authorization'
+              'Access-Control-Allow-Origin': '*'
             }
           }
         );
