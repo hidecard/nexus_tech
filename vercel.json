@@ -1,0 +1,30 @@
+{
+  "rewrites": [
+    {
+      "source": "/api/google/:path*",
+      "destination": "https://www.google.com/:path*"
+    },
+    {
+      "source": "/api/googleapis/:path*",
+      "destination": "https://www.googleapis.com/:path*"
+    }
+  ],
+  "headers": [
+    {
+      "source": "/api/google/:path*",
+      "headers": [
+        { "key": "Access-Control-Allow-Origin", "value": "*" },
+        { "key": "Access-Control-Allow-Methods", "value": "GET, POST, PUT, DELETE, OPTIONS" },
+        { "key": "Access-Control-Allow-Headers", "value": "Content-Type, Authorization" }
+      ]
+    },
+    {
+      "source": "/api/googleapis/:path*",
+      "headers": [
+        { "key": "Access-Control-Allow-Origin", "value": "*" },
+        { "key": "Access-Control-Allow-Methods", "value": "GET, POST, PUT, DELETE, OPTIONS" },
+        { "key": "Access-Control-Allow-Headers", "value": "Content-Type, Authorization" }
+      ]
+    }
+  ]
+}

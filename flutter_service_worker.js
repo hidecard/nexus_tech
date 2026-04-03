@@ -29,3 +29,37 @@ self.addEventListener('activate', (event) => {
     })()
   );
 });
+
+// Handle fetch events for CORS issues
+self.addEventListener('fetch', (event) => {
+  // Only handle requests to google.com that are failing due to CORS
+  if (event.request.url.includes('google.com')) {
+    event.respondWith(
+      fetch(event.request.url, {
+        mode: 'cors',
+        credentials: 'omit',
+        headers: {
+          'Accept': 'application/json, text/plain, */*',
+        }
+      }).catch(() => {
+        // If fetch fails, return a fallback response
+        return new Response(
+          JSON.stringify({ 
+            error: 'CORS blocked - This request needs to be made through a proxy server',
+            message: 'Direct requests to Google APIs are blocked by CORS policy'
+          }),
+          {
+            status: 200,
+            statusText: 'OK',
+            headers: {
+              'Content-Type': 'application/json',
+              'Access-Control-Allow-Origin': '*',
+              'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+              'Access-Control-Allow-Headers': 'Content-Type, Authorization'
+            }
+          }
+        );
+      })
+    );
+  }
+});
